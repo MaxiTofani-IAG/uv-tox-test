@@ -1,4 +1,4 @@
-name: CI Pipeline con tox-uv
+name: CI UV ACTION INSTALL
 
 on: [push, pull_request]
 
