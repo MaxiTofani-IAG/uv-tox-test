@@ -1,0 +1,33 @@
+# Ejemplo SIMPLIFICADO de GitHub Actions con tox-uv
+name: CI Pipeline con tox-uv
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+    
+    # ✅ NUEVO: Instalar uv
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+    
+    # ✅ NUEVO: Instalar tox con tox-uv
+    - name: Install tox with tox-uv
+      run: uv tool install tox --with tox-uv
+    
+    # ✅ MISMO: Comandos iguales que antes
+    - name: Run tests
+      run: tox -e py312
+    
+    - name: Run linting
+      run: tox -e lint
