@@ -1,3 +1,4 @@
+# Ejemplo SIMPLIFICADO de GitHub Actions con tox-uv
 name: CI Pipeline con tox-uv
 
 on: [push, pull_request]
@@ -5,24 +6,45 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v4
-
+    
     - name: Set up Python 3.12
       uses: actions/setup-python@v4
       with:
         python-version: "3.12"
-
+    
+    # ✅ NUEVO: Instalar uv
     - name: Install uv
-      uses: astral-sh/setup-uv@v6
-      with:
-        version: "latest"  # o la versión que prefieras
-
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+    
+    # ✅ NUEVO: Instalar tox con tox-uv
     - name: Install tox with tox-uv
       run: uv tool install tox --with tox-uv
-
+    
+    # ✅ MISMO: Comandos iguales que antes
     - name: Run tests
       run: tox -e py312
-
+    
     - name: Run linting
       run: tox -e lint
+    
+    # 📊 NUEVO: Guardar reportes de coverage como artifacts
+    - name: Upload coverage XML
+      uses: actions/upload-artifact@v4
+      if: always()  # Sube aunque fallen los tests
+      with:
+        name: coverage-xml
+        path: coverage.xml
+        retention-days: 30
+        
+    - name: Upload coverage HTML report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-html-report
+        path: htmlcov/
+        retention-days: 30

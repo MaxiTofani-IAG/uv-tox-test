@@ -1,0 +1,79 @@
+# Workflow AVANZADO con múltiples artifacts y badges
+name: CI Advanced Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+    
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+    
+    - name: Install tox with tox-uv
+      run: uv tool install tox --with tox-uv
+    
+    - name: Run tests with coverage
+      run: tox -e py312
+    
+    - name: Run linting
+      run: tox -e lint
+    
+    # 📊 Coverage Artifacts
+    - name: Upload coverage XML
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-xml-${{ github.sha }}
+        path: coverage.xml
+        retention-days: 30
+        
+    - name: Upload coverage HTML
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-html-${{ github.sha }}
+        path: htmlcov/
+        retention-days: 30
+    
+    # 📁 Test Results
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: pytest-results-${{ github.sha }}
+        path: .tox/py312/.pytest_cache/
+        retention-days: 7
+    
+    # 🔍 Logs de tox
+    - name: Upload tox logs
+      uses: actions/upload-artifact@v4
+      if: failure()  # Solo si falla
+      with:
+        name: tox-logs-${{ github.sha }}
+        path: .tox/log/
+        retention-days: 7
+        
+    # 📈 Coverage Badge (opcional)
+    - name: Coverage Badge
+      uses: tj-actions/coverage-badge-py@v2
+      if: github.ref == 'refs/heads/main'
+      with:
+        output: coverage-badge.svg
+        
+    - name: Upload coverage badge
+      uses: actions/upload-artifact@v4
+      if: github.ref == 'refs/heads/main'
+      with:
+        name: coverage-badge
+        path: coverage-badge.svg
