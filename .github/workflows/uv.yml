@@ -1,0 +1,28 @@
+name: CI Pipeline con tox-uv
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        version: "latest"  # o la versión que prefieras
+
+    - name: Install tox with tox-uv
+      run: uv tool install tox --with tox-uv
+
+    - name: Run tests
+      run: tox -e py312
+
+    - name: Run linting
+      run: tox -e lint
