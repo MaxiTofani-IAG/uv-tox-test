@@ -1,4 +1,4 @@
-name: CI Pipeline con tox-uv
+name: CI Pipeline con tox-uv ASTRAL Action
 
 on: [push, pull_request]
 
